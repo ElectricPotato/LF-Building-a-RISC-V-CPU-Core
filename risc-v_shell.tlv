@@ -43,9 +43,12 @@
    
    $reset = *reset;
    
-   
-   $next_pc[31:0] = $reset ? 0 : $pc + 1;
+   //Program Counter
+   $next_pc[31:0] = $reset ? 0 : $pc + 4;
    $pc[31:0] = >>1$next_pc;
+
+   //Instruction memeory
+   `READONLY_MEM($pc, $$instr[31:0])
    
    
    // Assert these to end simulation (before Makerchip cycle limit).
