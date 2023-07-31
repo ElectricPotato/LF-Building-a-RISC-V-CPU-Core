@@ -73,9 +73,21 @@
    $rs2[4:0]    = $instr[24:20];
    $rd[4:0]     = $instr[11:7];
    $opcode[6:0] = $instr[6:0];
-   
-   //$funct7[:] = $instr[:]; //unused
-   
+   //$funct7[:0] = $instr[31:25]; //unused
+
+   $imm[31:0] = 0;
+
+   //field valid signals
+   //              $is_u_instr || $is_i_instr || $is_r_instr || $is_s_instr || $is_b_instr || $is_j_instr;
+   $funct3_valid =                $is_i_instr || $is_r_instr || $is_s_instr || $is_b_instr;
+   $rs1_valid    =                $is_i_instr || $is_r_instr || $is_s_instr || $is_b_instr;
+   $rs2_valid    =                $is_i_instr || $is_r_instr ||                $is_b_instr;
+   $rd_valid     = $is_u_instr || $is_i_instr || $is_r_instr ||                               $is_j_instr;
+   $imm_valid    = $is_u_instr || $is_i_instr ||                $is_s_instr || $is_b_instr || $is_j_instr;
+   //$funct7_valid =                             $is_r_instr; //unused
+   //$opcode_valid = 1'b1; //always valid
+
+   `BOGUS_USE($funct3 $rs1 $rs2 $rd $opcode $imm $funct3_valid $rs1_valid $rs2_valid $rd_valid $imm_valid) 
    
    // Assert these to end simulation (before Makerchip cycle limit).
    *passed = 1'b0;
