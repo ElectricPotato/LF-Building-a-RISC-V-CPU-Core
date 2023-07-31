@@ -20,6 +20,7 @@
    //  x13 (a3): 1..10
    //  x14 (a4): Sum
    // 
+   //m4_asm(ADDI, x0,  x0, 1111)           // try to write 15 to register 0
    m4_asm(ADDI, x14, x0, 0)              // Initialize sum register a4 with 0
    m4_asm(ADDI, x12, x0, 1010)           // Store count of 10 in register a2.
    m4_asm(ADDI, x13, x0, 1)              // Initialize loop count register a3 with 0
@@ -108,14 +109,22 @@
 
    $is_add  = $dec_bits ==  11'b0_000_0110011;
 
+   $result[31:0] =
+      $is_addi ? $src1_value + $imm :
+      $is_add  ? $src1_value + $src2_value :
+      32'b0; //Default
+
+   $rd_valid_gated = $rd == 0 ? 0 : $rd_valid;
+
    `BOGUS_USE($funct3 $rs1 $rs2 $rd $opcode $imm $funct3_valid $rs1_valid $rs2_valid $rd_valid $imm_valid) 
-   `BOGUS_USE($is_beq $is_bne $is_blt $is_bge $is_bltu $is_bgeu $is_addi $is_add) 
+   `BOGUS_USE($is_beq $is_bne $is_blt $is_bge $is_bltu $is_bgeu $is_addi $is_add)
    
    // Assert these to end simulation (before Makerchip cycle limit).
    *passed = 1'b0;
    *failed = *cyc_cnt > M4_MAX_CYC;
    
-   //m4+rf(32, 32, $reset, $wr_en, $wr_index[4:0], $wr_data[31:0], $rd1_en, $rd1_index[4:0], $rd1_data, $rd2_en, $rd2_index[4:0], $rd2_data)
+   
+   m4+rf(32, 32, $reset, $rd_valid_gated, $rd, $result, $rs1_valid, $rs1, $src1_value, $rs2_valid, $rs2, $src2_value)
    //m4+dmem(32, 32, $reset, $addr[4:0], $wr_en, $wr_data[31:0], $rd_en, $rd_data)
    m4+cpu_viz()
 \SV
