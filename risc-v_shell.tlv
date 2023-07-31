@@ -49,6 +49,32 @@
 
    //Instruction memeory
    `READONLY_MEM($pc, $$instr[31:0])
+
+   //Decode
+   $is_u_instr = $instr[6:2] ==? 5'b0x101;
+
+   $is_i_instr = $instr[6:2] ==? 5'b0000x ||
+                 $instr[6:2] ==? 5'b001x0 ||
+                 $instr[6:2] ==  5'b11001;
+
+   $is_r_instr = $instr[6:2] ==  5'b01011 ||
+                 $instr[6:2] ==? 5'b011x0 ||
+                 $instr[6:2] ==  5'b10100;
+   
+   $is_s_instr = $instr[6:2] ==? 5'b0100x;
+
+   $is_b_instr = $instr[6:2] ==  5'b11000;
+
+   $is_j_instr = $instr[6:2] ==  5'b11011;
+
+   //instruction fields
+   $funct3[2:0] = $instr[14:12];
+   $rs1[4:0]    = $instr[19:15];
+   $rs2[4:0]    = $instr[24:20];
+   $rd[4:0]     = $instr[11:7];
+   $opcode[6:0] = $instr[6:0];
+   
+   //$funct7[:] = $instr[:]; //unused
    
    
    // Assert these to end simulation (before Makerchip cycle limit).
