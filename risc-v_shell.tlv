@@ -114,7 +114,22 @@
       $is_add  ? $src1_value + $src2_value :
       32'b0; //Default
 
+   //disable destination register write if the destination register is x0
    $rd_valid_gated = $rd == 0 ? 0 : $rd_valid;
+
+   $taken_br =
+      $is_beq  ? $x1 == $x2 :
+      $is_bne  ? $x1 != $x2 :
+      $is_blt  ? $x1 <  $x2 ^ ($x1[31 != $x2[31]]) :
+      $is_bge  ? $x1 >= $x2 ^ ($x1[31 != $x2[31]]) :
+      $is_bltu ? $x1 <  $x2 :
+      $is_bgeu ? $x1 >= $x2 :
+                 32'b0; //Default
+
+
+   $br_tgt_pc = $pc + $imm;
+
+
 
    `BOGUS_USE($funct3 $rs1 $rs2 $rd $opcode $imm $funct3_valid $rs1_valid $rs2_valid $rd_valid $imm_valid) 
    `BOGUS_USE($is_beq $is_bne $is_blt $is_bge $is_bltu $is_bgeu $is_addi $is_add)
