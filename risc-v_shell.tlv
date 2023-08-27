@@ -19,10 +19,14 @@
    $reset = *reset;
    
    //Program Counter
+   $br_tgt_pc[31:0]   = $pc[31:0] + $imm;
+   $jalr_tgt_pc[31:0] = $src1_value + $imm;
+
    $next_pc[31:0] =
       $reset                     ? 0 :
-      ($is_b_instr && $taken_br) ? $br_tgt_pc[31:0] :
-      $is_j_instr                ? $pc + 4 : //TODO: jump
+      ($is_b_instr && $taken_br) ? $br_tgt_pc :
+      $is_jal                    ? $br_tgt_pc :
+      $is_jalr                   ? $jalr_tgt_pc :
                                    $pc + 4;
 
    $pc[31:0] = >>1$next_pc;
@@ -163,9 +167,6 @@
       $is_bltu ? $src1_value <  $src2_value :
       $is_bgeu ? $src1_value >= $src2_value :
                  1'b0; //Default
-
-
-   $br_tgt_pc[31:0] = $pc + $imm;
 
 
 
