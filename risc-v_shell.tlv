@@ -45,7 +45,12 @@
    $reset = *reset;
    
    //Program Counter
-   $next_pc[31:0] = $reset ? 0 : $pc + 4;
+   $next_pc[31:0] =
+      $reset                     ? 0 :
+      ($is_b_instr && $taken_br) ? $br_tgt_pc[31:0] :
+      $is_j_instr                ? $pc + 4 : //TODO: jump
+                                   $pc + 4;
+
    $pc[31:0] = >>1$next_pc;
 
    //Instruction memeory
@@ -116,18 +121,19 @@
 
    //disable destination register write if the destination register is x0
    $rd_valid_gated = $rd == 0 ? 0 : $rd_valid;
-
+   
+   //assume rs1_valid is always true
    $taken_br =
-      $is_beq  ? $x1 == $x2 :
-      $is_bne  ? $x1 != $x2 :
-      $is_blt  ? $x1 <  $x2 ^ ($x1[31 != $x2[31]]) :
-      $is_bge  ? $x1 >= $x2 ^ ($x1[31 != $x2[31]]) :
-      $is_bltu ? $x1 <  $x2 :
-      $is_bgeu ? $x1 >= $x2 :
+      $is_beq  ? $src1_value == $src2_value :
+      $is_bne  ? $src1_value != $src2_value :
+      $is_blt  ? ($src1_value <  $src2_value) ^ ($src1_value[31] != $src2_value[31]) :
+      $is_bge  ? ($src1_value >= $src2_value) ^ ($src1_value[31] != $src2_value[31]) :
+      $is_bltu ? $src1_value <  $src2_value :
+      $is_bgeu ? $src1_value >= $src2_value :
                  32'b0; //Default
 
 
-   $br_tgt_pc = $pc + $imm;
+   $br_tgt_pc[31:0] = $pc + $imm;
 
 
 
@@ -135,7 +141,8 @@
    `BOGUS_USE($is_beq $is_bne $is_blt $is_bge $is_bltu $is_bgeu $is_addi $is_add)
    
    // Assert these to end simulation (before Makerchip cycle limit).
-   *passed = 1'b0;
+   //*passed = 1'b0;
+   m4+tb()
    *failed = *cyc_cnt > M4_MAX_CYC;
    
    
