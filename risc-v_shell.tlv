@@ -126,33 +126,34 @@
    $srai_result[63:0] = $sext_src1 >> $imm[4:0];
 
    $result[31:0] =
-      $is_lui   ? {$imm[31:12], 12'b0} :
-      $is_auipc ? $pc + $imm :
-      $is_jal   ? $pc + 32'd4 :
-      $is_jalr  ? $pc + 32'd4 :
+      $is_lui     ? {$imm[31:12], 12'b0} :
+      $is_auipc   ? $pc + $imm :
+      $is_jal     ? $pc + 32'd4 :
+      $is_jalr    ? $pc + 32'd4 :
 
-      //$is_load  ? 
+      $is_load    ? $src1_value + $imm : //memory address
+      $is_s_instr ? $src1_value + $imm :
 
-      $is_addi  ? $src1_value + $imm :
-      $is_slli  ? $src1_value << $imm[5:0] :
-      $is_slti  ? ( ($src1_value[31] == $imm[31]) ? $sltiu_result : {31'b0, $src1_value[31]} ) :
-      $is_sltiu ? $sltiu_result :
-      $is_xori  ? $src1_value ^ $imm :
-      $is_srli  ? $src1_value >> $imm[5:0] :
-      $is_srai  ? $srai_result[31:0] :
-      $is_ori   ? $src1_value | $imm :
-      $is_andi  ? $src1_value & $imm :
+      $is_addi    ? $src1_value + $imm :
+      $is_slli    ? $src1_value << $imm[5:0] :
+      $is_slti    ? ( ($src1_value[31] == $imm[31]) ? $sltiu_result : {31'b0, $src1_value[31]} ) :
+      $is_sltiu   ? $sltiu_result :
+      $is_xori    ? $src1_value ^ $imm :
+      $is_srli    ? $src1_value >> $imm[5:0] :
+      $is_srai    ? $srai_result[31:0] :
+      $is_ori     ? $src1_value | $imm :
+      $is_andi    ? $src1_value & $imm :
 
-      $is_add   ? $src1_value + $src2_value :
-      $is_sub   ? $src1_value - $src2_value :
-      $is_sll   ? $src1_value << $src2_value[5:0] :
-      $is_slt   ? ( ($src1_value[31] == $src2_value[31]) ? $sltu_result : {31'b0, $src1_value[31]} ) :
-      $is_sltu  ? $sltu_result :
-      $is_xor   ? $src1_value ^ $src2_value :
-      $is_srl   ? $src1_value >> $src2_value[5:0] :
-      $is_sra   ? $sra_result[31:0] :
-      $is_or    ? $src1_value | $src2_value :
-      $is_and   ? $src1_value & $src2_value :
+      $is_add     ? $src1_value + $src2_value :
+      $is_sub     ? $src1_value - $src2_value :
+      $is_sll     ? $src1_value << $src2_value[5:0] :
+      $is_slt     ? ( ($src1_value[31] == $src2_value[31]) ? $sltu_result : {31'b0, $src1_value[31]} ) :
+      $is_sltu    ? $sltu_result :
+      $is_xor     ? $src1_value ^ $src2_value :
+      $is_srl     ? $src1_value >> $src2_value[5:0] :
+      $is_sra     ? $sra_result[31:0] :
+      $is_or      ? $src1_value | $src2_value :
+      $is_and     ? $src1_value & $src2_value :
             32'b0; //Default
 
    //disable destination register write if the destination register is x0
@@ -169,9 +170,7 @@
                  1'b0; //Default
 
 
-   $addr = $src1_value + $imm;
-
-
+   $rd_value = $is_load ? $ld_data : $result;
 
    `BOGUS_USE($funct3 $rs1 $rs2 $rd $opcode $imm $funct3_valid $rs1_valid $rs2_valid $rd_valid $imm_valid) 
    `BOGUS_USE($is_beq $is_bne $is_blt $is_bge $is_bltu $is_bgeu $is_addi $is_add)
@@ -182,8 +181,9 @@
    *failed = *cyc_cnt > M4_MAX_CYC;
    
    
-   m4+rf(32, 32, $reset, $rd_valid_gated, $rd, $result, $rs1_valid, $rs1, $src1_value, $rs2_valid, $rs2, $src2_value)
+   m4+rf(32, 32, $reset, $rd_valid_gated, $rd, $rd_value, $rs1_valid, $rs1, $src1_value, $rs2_valid, $rs2, $src2_value)
    //m4+dmem(32, 32, $reset, $addr[4:0], $wr_en, $wr_data[31:0], $rd_en, $rd_data)
+   m4+dmem(32, 32, $reset, $result[4:0], $is_s_instr, $src2_value, $is_load, $ld_data)
    m4+cpu_viz()
 \SV
    endmodule
