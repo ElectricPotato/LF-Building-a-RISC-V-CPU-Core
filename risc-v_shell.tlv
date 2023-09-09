@@ -170,7 +170,7 @@
                  1'b0; //Default
 
 
-   $rd_value = $is_load ? $ld_data : $result;
+   $rd_value[31:0] = $is_load ? $ld_data[31:0] : $result;
 
    `BOGUS_USE($funct3 $rs1 $rs2 $rd $opcode $imm $funct3_valid $rs1_valid $rs2_valid $rd_valid $imm_valid) 
    `BOGUS_USE($is_beq $is_bne $is_blt $is_bge $is_bltu $is_bgeu $is_addi $is_add)
